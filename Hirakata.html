@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSI · Belajar Hiragana & Katakana</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=Shippori+Mincho:wght@400;700&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1208;
+    --paper: #f5f0e8;
+    --paper2: #ede7d5;
+    --vermillion: #c0392b;
+    --gold: #c9903a;
+    --sage: #5b7c6e;
+    --muted: #8a7d6a;
+    --light-muted: #c4b89a;
+    --card-bg: #faf7f0;
+    --shadow: rgba(26,18,8,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(201,144,58,0.06) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(192,57,43,0.05) 0%, transparent 50%);
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* HEADER */
+  header {
+    padding: 2rem 2rem 1rem;
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    border-bottom: 1px solid var(--light-muted);
+  }
+
+  .logo {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 2.2rem;
+    color: var(--vermillion);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .logo-sub {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--light-muted);
+    flex-wrap: wrap;
+  }
+
+  .nav-btn {
+    padding: 0.4rem 1.1rem;
+    border: 1.5px solid var(--light-muted);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .nav-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* MAIN */
+  main { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+
+  /* SCREEN MANAGER */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ─── FLASHCARD SCREEN ─── */
+  .fc-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .fc-controls label {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+
+  .fc-controls input[type=checkbox] {
+    accent-color: var(--vermillion);
+    width: 14px; height: 14px;
+  }
+
+  .fc-progress {
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* CARD CONTAINER */
+  .card-wrap {
+    perspective: 1200px;
+    width: 340px;
+    height: 260px;
+    margin: 0 auto 2rem;
+    cursor: pointer;
+  }
+
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-inner.flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background: var(--card-bg);
+    border: 1.5px solid var(--light-muted);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 4px 4px 0 var(--paper2), 4px 4px 0 1px var(--light-muted);
+  }
+
+  .card-back {
+    transform: rotateY(180deg);
+    background: var(--ink);
+    border-color: var(--ink);
+    box-shadow: 4px 4px 0 rgba(26,18,8,0.3);
+  }
+
+  .card-kana {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 6rem;
+    line-height: 1;
+    color: var(--ink);
+    text-shadow: 2px 2px 0 rgba(192,57,43,0.12);
+  }
+
+  .card-type-badge {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--light-muted);
+  }
+
+  .card-tap-hint {
+    position: absolute;
+    bottom: 12px;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: var(--light-muted);
+    text-transform: uppercase;
+  }
+
+  .card-back .card-romaji {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 3rem;
+    color: var(--paper);
+    letter-spacing: 0.05em;
+  }
+
+  .card-back .card-reading {
+    font-size: 0.75rem;
+    color: var(--light-muted);
+    margin-top: 0.5rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .card-back .card-type-badge { color: var(--muted); }
+
+  /* CARD ACTIONS */
+  .card-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .act-btn {
+    padding: 0.6rem 1.6rem;
+    border: 1.5px solid;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.18s;
+    background: transparent;
+  }
+
+  .act-btn.prev { border-color: var(--light-muted); color: var(--muted); }
+  .act-btn.prev:hover { border-color: var(--ink); color: var(--ink); }
+  .act-btn.next { border-color: var(--ink); color: var(--ink); }
+  .act-btn.next:hover { background: var(--ink); color: var(--paper); }
+  .act-btn.shuffle { border-color: var(--gold); color: var(--gold); }
+  .act-btn.shuffle:hover { background: var(--gold); color: var(--paper); }
+
+  /* KANA TABLE */
+  .section-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.1rem;
+    color: var(--ink);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--light-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .section-title span.ja {
+    font-size: 1.3rem;
+    color: var(--vermillion);
+  }
+
+  .kana-table-wrap {
+    overflow-x: auto;
+    margin-bottom: 2rem;
+  }
+
+  .kana-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+    gap: 6px;
+  }
+
+  .kana-cell {
+    background: var(--card-bg);
+    border: 1px solid var(--light-muted);
+    border-radius: 3px;
+    padding: 0.5rem 0.3rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .kana-cell:hover { border-color: var(--vermillion); transform: translateY(-1px); }
+  .kana-cell.selected { background: var(--ink); border-color: var(--ink); }
+  .kana-cell.selected .kana-char { color: var(--paper); }
+  .kana-cell.selected .kana-rom { color: var(--light-muted); }
+
+  .kana-char {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.6rem;
+    display: block;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+
+  .kana-rom {
+    font-size: 0.58rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .kana-cell.empty { background: transparent; border-color: transparent; cursor: default; }
+  .kana-cell.empty:hover { transform: none; }
+
+  /* ─── TEST SCREEN ─── */
+  .test-setup {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .test-setup h2 {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .setup-group {
+    margin-bottom: 1.2rem;
+  }
+
+  .setup-group label {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .setup-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .setup-opt {
+    padding: 0.4rem 1rem;
+    border: 1.5px solid var(--light-muted);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+
+  .setup-opt:hover { border-color: var(--gold); color: var(--gold); }
+  .setup-opt.sel { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .start-test-btn {
+    margin-top: 1.5rem;
+    padding: 0.8rem 2.5rem;
+    background: var(--vermillion);
+    color: white;
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: opacity 0.2s;
+  }
+
+  .start-test-btn:hover { opacity: 0.85; }
+
+  /* TEST ACTIVE */
+  .test-active { display: none; }
+  .test-active.visible { display: block; }
+
+  .test-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .test-counter {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .test-score-live {
+    margin-left: auto;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--paper2);
+    border-radius: 2px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--vermillion);
+    transition: width 0.4s ease;
+    border-radius: 2px;
+  }
+
+  .test-question {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .test-q-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.8rem;
+  }
+
+  .test-q-char {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 5rem;
+    color: var(--ink);
+    line-height: 1;
+    display: block;
+  }
+
+  .test-q-romaji {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 3.5rem;
+    color: var(--ink);
+    display: block;
+  }
+
+  .test-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+    max-width: 440px;
+    margin: 0 auto 1.5rem;
+  }
+
+  .test-opt-btn {
+    padding: 1rem;
+    border: 1.5px solid var(--light-muted);
+    background: var(--card-bg);
+    color: var(--ink);
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.8rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+  }
+
+  .test-opt-btn small {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+
+  .test-opt-btn:hover:not(:disabled) { border-color: var(--gold); transform: translateY(-1px); }
+  .test-opt-btn.correct { background: var(--sage); border-color: var(--sage); color: white; }
+  .test-opt-btn.correct small { color: rgba(255,255,255,0.7); }
+  .test-opt-btn.wrong { background: var(--vermillion); border-color: var(--vermillion); color: white; }
+  .test-opt-btn.wrong small { color: rgba(255,255,255,0.7); }
+  .test-opt-btn:disabled { cursor: not-allowed; }
+
+  /* TYPE INPUT TEST */
+  .test-type-input {
+    display: flex;
+    gap: 0.5rem;
+    max-width: 360px;
+    margin: 0 auto 1rem;
+  }
+
+  .test-type-input input {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid var(--light-muted);
+    background: var(--card-bg);
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    border-radius: 2px;
+    color: var(--ink);
+    outline: none;
+  }
+
+  .test-type-input input:focus { border-color: var(--gold); }
+  .test-type-input input.correct { border-color: var(--sage); background: rgba(91,124,110,0.08); }
+  .test-type-input input.wrong { border-color: var(--vermillion); background: rgba(192,57,43,0.06); }
+
+  .test-type-input button {
+    padding: 0.7rem 1.2rem;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: opacity 0.2s;
+  }
+
+  .test-type-input button:hover { opacity: 0.8; }
+
+  .test-feedback {
+    text-align: center;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    min-height: 1.2em;
+    color: var(--muted);
+  }
+
+  .test-feedback.ok { color: var(--sage); }
+  .test-feedback.err { color: var(--vermillion); }
+
+  /* RESULT SCREEN */
+  .result-screen {
+    text-align: center;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+
+  .result-kana {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 4rem;
+    color: var(--vermillion);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .result-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .result-score {
+    font-size: 3.5rem;
+    font-family: 'Shippori Mincho', serif;
+    color: var(--ink);
+    margin: 1rem 0;
+  }
+
+  .result-score span { color: var(--vermillion); }
+
+  .result-meta {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 2rem;
+  }
+
+  .result-breakdown {
+    background: var(--card-bg);
+    border: 1px solid var(--light-muted);
+    border-radius: 3px;
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+
+  .breakdown-title {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.8rem;
+  }
+
+  .missed-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .missed-item {
+    background: rgba(192,57,43,0.08);
+    border: 1px solid rgba(192,57,43,0.2);
+    border-radius: 2px;
+    padding: 0.3rem 0.6rem;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1rem;
+  }
+
+  .missed-item small {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    display: block;
+    text-align: center;
+  }
+
+  .result-btns {
+    display: flex;
+    gap: 0.7rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .result-btn {
+    padding: 0.7rem 1.8rem;
+    border: 1.5px solid;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.18s;
+    background: transparent;
+  }
+
+  .result-btn.primary { border-color: var(--vermillion); color: var(--vermillion); }
+  .result-btn.primary:hover { background: var(--vermillion); color: white; }
+  .result-btn.secondary { border-color: var(--ink); color: var(--ink); }
+  .result-btn.secondary:hover { background: var(--ink); color: var(--paper); }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    header { padding: 1.2rem 1rem 0.8rem; }
+    nav { padding: 0.8rem 1rem; }
+    main { padding: 1.2rem 1rem; }
+    .card-wrap { width: 280px; height: 220px; }
+    .card-kana { font-size: 4.5rem; }
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .screen.active { animation: fadeUp 0.3s ease; }
+
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+
+  .card-wrap:hover .card-face:not(.card-back) { box-shadow: 6px 6px 0 var(--paper2), 6px 6px 0 1px var(--light-muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Hirakata</div>
+  </div>
+  <div class="logo-sub">Belajar Hiragana & Katakana</div>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="showScreen('flashcard')">Flashcard</button>
+  <button class="nav-btn" onclick="showScreen('table')">Tabel Lengkap</button>
+  <button class="nav-btn" onclick="showScreen('test')">Tes</button>
+</nav>
+
+<main>
+
+  <!-- ─── FLASHCARD SCREEN ─── -->
+  <div id="screen-flashcard" class="screen active">
+    <div class="fc-controls">
+      <label><input type="checkbox" id="fc-hiragana" checked onchange="buildDeck()"> Hiragana</label>
+      <label><input type="checkbox" id="fc-katakana" checked onchange="buildDeck()"> Katakana</label>
+      <label><input type="checkbox" id="fc-dakuten" onchange="buildDeck()"> Dakuten/Handakuten</label>
+      <label><input type="checkbox" id="fc-combo" onchange="buildDeck()"> Kombinasi</label>
+      <div class="fc-progress" id="fc-progress">1 / 46</div>
+    </div>
+
+    <div class="card-wrap" onclick="flipCard()" id="card-wrap">
+      <div class="card-inner" id="card-inner">
+        <div class="card-face" id="card-front">
+          <div class="card-type-badge" id="fc-badge">Hiragana</div>
+          <div class="card-kana" id="fc-kana">あ</div>
+          <div class="card-tap-hint">ketuk untuk membalik</div>
+        </div>
+        <div class="card-face card-back" id="card-back">
+          <div class="card-type-badge" id="fc-badge-back">Hiragana</div>
+          <div class="card-romaji" id="fc-romaji">a</div>
+          <div class="card-reading" id="fc-reading">romaji</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <button class="act-btn prev" onclick="prevCard()">← Sebelum</button>
+      <button class="act-btn shuffle" onclick="shuffleDeck()">⟳ Acak</button>
+      <button class="act-btn next" onclick="nextCard()">Berikut →</button>
+    </div>
+
+    <div style="font-size:0.68rem;color:var(--muted);text-align:center;letter-spacing:0.05em;">
+      Gunakan tombol ← → atau klik kartu untuk navigasi
+    </div>
+  </div>
+
+  <!-- ─── TABLE SCREEN ─── -->
+  <div id="screen-table" class="screen">
+    <div class="section-title"><span class="ja">ひらがな</span> Hiragana</div>
+    <div class="kana-table-wrap">
+      <div class="kana-grid" id="grid-hiragana"></div>
+    </div>
+
+    <div class="section-title" style="margin-top:2rem"><span class="ja">ひらがな</span> Hiragana — Dakuten & Handakuten</div>
+    <div class="kana-table-wrap">
+      <div class="kana-grid" id="grid-hiragana-daku"></div>
+    </div>
+
+    <div class="section-title" style="margin-top:2rem"><span class="ja">ひらがな</span> Hiragana — Kombinasi</div>
+    <div class="kana-table-wrap">
+      <div class="kana-grid" id="grid-hiragana-combo"></div>
+    </div>
+
+    <div class="section-title" style="margin-top:2rem"><span class="ja">カタカナ</span> Katakana</div>
+    <div class="kana-table-wrap">
+      <div class="kana-grid" id="grid-katakana"></div>
+    </div>
+
+    <div class="section-title" style="margin-top:2rem"><span class="ja">カタカナ</span> Katakana — Dakuten & Handakuten</div>
+    <div class="kana-table-wrap">
+      <div class="kana-grid" id="grid-katakana-daku"></div>
+    </div>
+
+    <div class="section-title" style="margin-top:2rem"><span class="ja">カタカナ</span> Katakana — Kombinasi</div>
+    <div class="kana-table-wrap">
+      <div class="kana-grid" id="grid-katakana-combo"></div>
+    </div>
+  </div>
+
+  <!-- ─── TEST SCREEN ─── -->
+  <div id="screen-test" class="screen">
+    <div class="test-setup" id="test-setup">
+      <h2>Uji Kemampuan</h2>
+
+      <div class="setup-group">
+        <label>Jenis Karakter</label>
+        <div class="setup-row">
+          <button class="setup-opt sel" data-group="type" data-val="both" onclick="selectOpt(this)">Hiragana + Katakana</button>
+          <button class="setup-opt" data-group="type" data-val="hiragana" onclick="selectOpt(this)">Hiragana saja</button>
+          <button class="setup-opt" data-group="type" data-val="katakana" onclick="selectOpt(this)">Katakana saja</button>
+        </div>
+      </div>
+
+      <div class="setup-group">
+        <label>Level</label>
+        <div class="setup-row">
+          <button class="setup-opt sel" data-group="level" data-val="basic" onclick="selectOpt(this)">Dasar (46 karakter)</button>
+          <button class="setup-opt" data-group="level" data-val="dakuten" onclick="selectOpt(this)">+ Dakuten</button>
+          <button class="setup-opt" data-group="level" data-val="all" onclick="selectOpt(this)">Semua</button>
+        </div>
+      </div>
+
+      <div class="setup-group">
+        <label>Mode Soal</label>
+        <div class="setup-row">
+          <button class="setup-opt sel" data-group="qtype" data-val="kana2romaji" onclick="selectOpt(this)">Kana → Romaji</button>
+          <button class="setup-opt" data-group="qtype" data-val="romaji2kana" onclick="selectOpt(this)">Romaji → Kana</button>
+          <button class="setup-opt" data-group="qtype" data-val="mixed" onclick="selectOpt(this)">Campur</button>
+        </div>
+      </div>
+
+      <div class="setup-group">
+        <label>Format Jawaban</label>
+        <div class="setup-row">
+          <button class="setup-opt sel" data-group="anstype" data-val="multiple" onclick="selectOpt(this)">Pilihan Ganda</button>
+          <button class="setup-opt" data-group="anstype" data-val="type" onclick="selectOpt(this)">Ketik Jawaban</button>
+        </div>
+      </div>
+
+      <div class="setup-group">
+        <label>Jumlah Soal</label>
+        <div class="setup-row">
+          <button class="setup-opt" data-group="count" data-val="10" onclick="selectOpt(this)">10</button>
+          <button class="setup-opt sel" data-group="count" data-val="20" onclick="selectOpt(this)">20</button>
+          <button class="setup-opt" data-group="count" data-val="30" onclick="selectOpt(this)">30</button>
+          <button class="setup-opt" data-group="count" data-val="all" onclick="selectOpt(this)">Semua</button>
+        </div>
+      </div>
+
+      <button class="start-test-btn" onclick="startTest()">Mulai Tes →</button>
+    </div>
+
+    <div class="test-active" id="test-active">
+      <div class="test-header">
+        <div class="test-counter" id="test-counter">Soal 1 / 20</div>
+        <div class="test-score-live" id="test-score-live">Benar: 0</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+      <div class="test-question">
+        <div class="test-q-label" id="test-q-label">Apa romaji dari karakter ini?</div>
+        <span class="test-q-char" id="test-q-display"></span>
+      </div>
+
+      <!-- Multiple choice -->
+      <div class="test-options" id="test-options"></div>
+
+      <!-- Type input -->
+      <div class="test-type-input" id="test-type-wrap" style="display:none">
+        <input type="text" id="test-type-inp" placeholder="ketik romaji..." autocomplete="off" autocapitalize="off">
+        <button onclick="checkTyped()">Cek</button>
+      </div>
+
+      <div class="test-feedback" id="test-feedback"></div>
+    </div>
+
+    <div class="test-active" id="test-result">
+      <div class="result-screen">
+        <span class="result-kana" id="result-emoji">合格</span>
+        <div class="result-title" id="result-title">Hasil Tes</div>
+        <div class="result-score"><span id="result-correct">0</span> / <span id="result-total">0</span></div>
+        <div class="result-meta" id="result-meta"></div>
+        <div class="result-breakdown" id="result-breakdown">
+          <div class="breakdown-title">Karakter yang Salah</div>
+          <div class="missed-list" id="missed-list"></div>
+        </div>
+        <div class="result-btns">
+          <button class="result-btn primary" onclick="retryTest()">Ulangi Tes</button>
+          <button class="result-btn secondary" onclick="goSetup()">Pengaturan Baru</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const HIRAGANA_BASIC = [
+  {k:'あ',r:'a'},{k:'い',r:'i'},{k:'う',r:'u'},{k:'え',r:'e'},{k:'お',r:'o'},
+  {k:'か',r:'ka'},{k:'き',r:'ki'},{k:'く',r:'ku'},{k:'け',r:'ke'},{k:'こ',r:'ko'},
+  {k:'さ',r:'sa'},{k:'し',r:'shi'},{k:'す',r:'su'},{k:'せ',r:'se'},{k:'そ',r:'so'},
+  {k:'た',r:'ta'},{k:'ち',r:'chi'},{k:'つ',r:'tsu'},{k:'て',r:'te'},{k:'と',r:'to'},
+  {k:'な',r:'na'},{k:'に',r:'ni'},{k:'ぬ',r:'nu'},{k:'ね',r:'ne'},{k:'の',r:'no'},
+  {k:'は',r:'ha'},{k:'ひ',r:'hi'},{k:'ふ',r:'fu'},{k:'へ',r:'he'},{k:'ほ',r:'ho'},
+  {k:'ま',r:'ma'},{k:'み',r:'mi'},{k:'む',r:'mu'},{k:'め',r:'me'},{k:'も',r:'mo'},
+  {k:'や',r:'ya'},{k:'',r:''},{k:'ゆ',r:'yu'},{k:'',r:''},{k:'よ',r:'yo'},
+  {k:'ら',r:'ra'},{k:'り',r:'ri'},{k:'る',r:'ru'},{k:'れ',r:'re'},{k:'ろ',r:'ro'},
+  {k:'わ',r:'wa'},{k:'',r:''},{k:'を',r:'wo'},{k:'',r:''},{k:'ん',r:'n'},
+];
+
+const HIRAGANA_DAKU = [
+  {k:'が',r:'ga'},{k:'ぎ',r:'gi'},{k:'ぐ',r:'gu'},{k:'げ',r:'ge'},{k:'ご',r:'go'},
+  {k:'ざ',r:'za'},{k:'じ',r:'ji'},{k:'ず',r:'zu'},{k:'ぜ',r:'ze'},{k:'ぞ',r:'zo'},
+  {k:'だ',r:'da'},{k:'ぢ',r:'di'},{k:'づ',r:'du'},{k:'で',r:'de'},{k:'ど',r:'do'},
+  {k:'ば',r:'ba'},{k:'び',r:'bi'},{k:'ぶ',r:'bu'},{k:'べ',r:'be'},{k:'ぼ',r:'bo'},
+  {k:'ぱ',r:'pa'},{k:'ぴ',r:'pi'},{k:'ぷ',r:'pu'},{k:'ぺ',r:'pe'},{k:'ぽ',r:'po'},
+];
+
+const HIRAGANA_COMBO = [
+  {k:'きゃ',r:'kya'},{k:'きゅ',r:'kyu'},{k:'きょ',r:'kyo'},
+  {k:'しゃ',r:'sha'},{k:'しゅ',r:'shu'},{k:'しょ',r:'sho'},
+  {k:'ちゃ',r:'cha'},{k:'ちゅ',r:'chu'},{k:'ちょ',r:'cho'},
+  {k:'にゃ',r:'nya'},{k:'にゅ',r:'nyu'},{k:'にょ',r:'nyo'},
+  {k:'ひゃ',r:'hya'},{k:'ひゅ',r:'hyu'},{k:'ひょ',r:'hyo'},
+  {k:'みゃ',r:'mya'},{k:'みゅ',r:'myu'},{k:'みょ',r:'myo'},
+  {k:'りゃ',r:'rya'},{k:'りゅ',r:'ryu'},{k:'りょ',r:'ryo'},
+  {k:'ぎゃ',r:'gya'},{k:'ぎゅ',r:'gyu'},{k:'ぎょ',r:'gyo'},
+  {k:'じゃ',r:'ja'},{k:'じゅ',r:'ju'},{k:'じょ',r:'jo'},
+  {k:'びゃ',r:'bya'},{k:'びゅ',r:'byu'},{k:'びょ',r:'byo'},
+  {k:'ぴゃ',r:'pya'},{k:'ぴゅ',r:'pyu'},{k:'ぴょ',r:'pyo'},
+];
+
+const KATAKANA_BASIC = [
+  {k:'ア',r:'a'},{k:'イ',r:'i'},{k:'ウ',r:'u'},{k:'エ',r:'e'},{k:'オ',r:'o'},
+  {k:'カ',r:'ka'},{k:'キ',r:'ki'},{k:'ク',r:'ku'},{k:'ケ',r:'ke'},{k:'コ',r:'ko'},
+  {k:'サ',r:'sa'},{k:'シ',r:'shi'},{k:'ス',r:'su'},{k:'セ',r:'se'},{k:'ソ',r:'so'},
+  {k:'タ',r:'ta'},{k:'チ',r:'chi'},{k:'ツ',r:'tsu'},{k:'テ',r:'te'},{k:'ト',r:'to'},
+  {k:'ナ',r:'na'},{k:'ニ',r:'ni'},{k:'ヌ',r:'nu'},{k:'ネ',r:'ne'},{k:'ノ',r:'no'},
+  {k:'ハ',r:'ha'},{k:'ヒ',r:'hi'},{k:'フ',r:'fu'},{k:'ヘ',r:'he'},{k:'ホ',r:'ho'},
+  {k:'マ',r:'ma'},{k:'ミ',r:'mi'},{k:'ム',r:'mu'},{k:'メ',r:'me'},{k:'モ',r:'mo'},
+  {k:'ヤ',r:'ya'},{k:'',r:''},{k:'ユ',r:'yu'},{k:'',r:''},{k:'ヨ',r:'yo'},
+  {k:'ラ',r:'ra'},{k:'リ',r:'ri'},{k:'ル',r:'ru'},{k:'レ',r:'re'},{k:'ロ',r:'ro'},
+  {k:'ワ',r:'wa'},{k:'',r:''},{k:'ヲ',r:'wo'},{k:'',r:''},{k:'ン',r:'n'},
+];
+
+const KATAKANA_DAKU = [
+  {k:'ガ',r:'ga'},{k:'ギ',r:'gi'},{k:'グ',r:'gu'},{k:'ゲ',r:'ge'},{k:'ゴ',r:'go'},
+  {k:'ザ',r:'za'},{k:'ジ',r:'ji'},{k:'ズ',r:'zu'},{k:'ゼ',r:'ze'},{k:'ゾ',r:'zo'},
+  {k:'ダ',r:'da'},{k:'ヂ',r:'di'},{k:'ヅ',r:'du'},{k:'デ',r:'de'},{k:'ド',r:'do'},
+  {k:'バ',r:'ba'},{k:'ビ',r:'bi'},{k:'ブ',r:'bu'},{k:'ベ',r:'be'},{k:'ボ',r:'bo'},
+  {k:'パ',r:'pa'},{k:'ピ',r:'pi'},{k:'プ',r:'pu'},{k:'ペ',r:'pe'},{k:'ポ',r:'po'},
+];
+
+const KATAKANA_COMBO = [
+  {k:'キャ',r:'kya'},{k:'キュ',r:'kyu'},{k:'キョ',r:'kyo'},
+  {k:'シャ',r:'sha'},{k:'シュ',r:'shu'},{k:'ショ',r:'sho'},
+  {k:'チャ',r:'cha'},{k:'チュ',r:'chu'},{k:'チョ',r:'cho'},
+  {k:'ニャ',r:'nya'},{k:'ニュ',r:'nyu'},{k:'ニョ',r:'nyo'},
+  {k:'ヒャ',r:'hya'},{k:'ヒュ',r:'hyu'},{k:'ヒョ',r:'hyo'},
+  {k:'ミャ',r:'mya'},{k:'ミュ',r:'myu'},{k:'ミョ',r:'myo'},
+  {k:'リャ',r:'rya'},{k:'リュ',r:'ryu'},{k:'リョ',r:'ryo'},
+  {k:'ギャ',r:'gya'},{k:'ギュ',r:'gyu'},{k:'ギョ',r:'gyo'},
+  {k:'ジャ',r:'ja'},{k:'ジュ',r:'ju'},{k:'ジョ',r:'jo'},
+  {k:'ビャ',r:'bya'},{k:'ビュ',r:'byu'},{k:'ビョ',r:'byo'},
+  {k:'ピャ',r:'pya'},{k:'ピュ',r:'pyu'},{k:'ピョ',r:'pyo'},
+];
+
+// ══════════════════════════════════════════
+// SCREEN MANAGER
+// ══════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'table') buildTables();
+}
+
+// ══════════════════════════════════════════
+// FLASHCARD
+// ══════════════════════════════════════════
+let deck = [], deckIdx = 0, isFlipped = false;
+
+function buildDeck() {
+  const useH = document.getElementById('fc-hiragana').checked;
+  const useK = document.getElementById('fc-katakana').checked;
+  const useDaku = document.getElementById('fc-dakuten').checked;
+  const useCombo = document.getElementById('fc-combo').checked;
+
+  deck = [];
+  if (useH) {
+    deck.push(...HIRAGANA_BASIC.filter(x=>x.k).map(x=>({...x,type:'Hiragana'})));
+    if (useDaku) deck.push(...HIRAGANA_DAKU.map(x=>({...x,type:'Hiragana·Dakuten'})));
+    if (useCombo) deck.push(...HIRAGANA_COMBO.map(x=>({...x,type:'Hiragana·Combo'})));
+  }
+  if (useK) {
+    deck.push(...KATAKANA_BASIC.filter(x=>x.k).map(x=>({...x,type:'Katakana'})));
+    if (useDaku) deck.push(...KATAKANA_DAKU.map(x=>({...x,type:'Katakana·Dakuten'})));
+    if (useCombo) deck.push(...KATAKANA_COMBO.map(x=>({...x,type:'Katakana·Combo'})));
+  }
+  deckIdx = 0;
+  showCard();
+}
+
+function showCard() {
+  if (!deck.length) return;
+  const c = deck[deckIdx];
+  document.getElementById('fc-kana').textContent = c.k;
+  document.getElementById('fc-romaji').textContent = c.r;
+  document.getElementById('fc-badge').textContent = c.type;
+  document.getElementById('fc-badge-back').textContent = c.type;
+  document.getElementById('fc-progress').textContent = (deckIdx+1) + ' / ' + deck.length;
+  // Reset flip
+  if (isFlipped) {
+    document.getElementById('card-inner').classList.remove('flipped');
+    isFlipped = false;
+  }
+}
+
+function flipCard() {
+  isFlipped = !isFlipped;
+  document.getElementById('card-inner').classList.toggle('flipped', isFlipped);
+}
+
+function nextCard() {
+  deckIdx = (deckIdx + 1) % deck.length;
+  showCard();
+}
+
+function prevCard() {
+  deckIdx = (deckIdx - 1 + deck.length) % deck.length;
+  showCard();
+}
+
+function shuffleDeck() {
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  deckIdx = 0;
+  showCard();
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  const fcActive = document.getElementById('screen-flashcard').classList.contains('active');
+  if (!fcActive) return;
+  if (e.key === 'ArrowRight') nextCard();
+  if (e.key === 'ArrowLeft') prevCard();
+  if (e.key === ' ') { e.preventDefault(); flipCard(); }
+});
+
+// ══════════════════════════════════════════
+// TABLES
+// ══════════════════════════════════════════
+function buildTables() {
+  renderGrid('grid-hiragana', HIRAGANA_BASIC);
+  renderGrid('grid-hiragana-daku', HIRAGANA_DAKU);
+  renderGrid('grid-hiragana-combo', HIRAGANA_COMBO);
+  renderGrid('grid-katakana', KATAKANA_BASIC);
+  renderGrid('grid-katakana-daku', KATAKANA_DAKU);
+  renderGrid('grid-katakana-combo', KATAKANA_COMBO);
+}
+
+function renderGrid(id, data) {
+  const el = document.getElementById(id);
+  if (el.children.length) return;
+  data.forEach(item => {
+    const cell = document.createElement('div');
+    if (!item.k) {
+      cell.className = 'kana-cell empty';
+    } else {
+      cell.className = 'kana-cell';
+      cell.innerHTML = `<span class="kana-char">${item.k}</span><span class="kana-rom">${item.r}</span>`;
+      cell.title = item.r;
+    }
+    el.appendChild(cell);
+  });
+}
+
+// ══════════════════════════════════════════
+// TEST
+// ══════════════════════════════════════════
+const testCfg = { type:'both', level:'basic', qtype:'kana2romaji', anstype:'multiple', count:'20' };
+let testQ = [], testIdx = 0, testCorrect = 0, testMissed = [];
+
+function selectOpt(btn) {
+  const grp = btn.dataset.group;
+  document.querySelectorAll(`.setup-opt[data-group="${grp}"]`).forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  testCfg[grp] = btn.dataset.val;
+}
+
+function buildTestPool() {
+  let pool = [];
+  const addH = testCfg.type === 'both' || testCfg.type === 'hiragana';
+  const addK = testCfg.type === 'both' || testCfg.type === 'katakana';
+  const addDaku = testCfg.level === 'dakuten' || testCfg.level === 'all';
+  const addCombo = testCfg.level === 'all';
+
+  if (addH) {
+    pool.push(...HIRAGANA_BASIC.filter(x=>x.k).map(x=>({...x,type:'Hiragana'})));
+    if (addDaku) pool.push(...HIRAGANA_DAKU.map(x=>({...x,type:'Hiragana·Dakuten'})));
+    if (addCombo) pool.push(...HIRAGANA_COMBO.map(x=>({...x,type:'Hiragana·Combo'})));
+  }
+  if (addK) {
+    pool.push(...KATAKANA_BASIC.filter(x=>x.k).map(x=>({...x,type:'Katakana'})));
+    if (addDaku) pool.push(...KATAKANA_DAKU.map(x=>({...x,type:'Katakana·Dakuten'})));
+    if (addCombo) pool.push(...KATAKANA_COMBO.map(x=>({...x,type:'Katakana·Combo'})));
+  }
+  return pool;
+}
+
+function startTest() {
+  const pool = buildTestPool();
+  if (!pool.length) return alert('Pilih minimal satu jenis karakter.');
+  // Shuffle
+  for (let i = pool.length-1; i>0; i--) { const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+  const n = testCfg.count === 'all' ? pool.length : Math.min(parseInt(testCfg.count), pool.length);
+  testQ = pool.slice(0, n);
+  testIdx = 0; testCorrect = 0; testMissed = [];
+
+  document.getElementById('test-setup').style.display = 'none';
+  document.getElementById('test-active').classList.add('visible');
+  document.getElementById('test-result').classList.remove('visible');
+  showTestQ();
+}
+
+function getQMode() {
+  if (testCfg.qtype === 'mixed') return Math.random() < 0.5 ? 'kana2romaji' : 'romaji2kana';
+  return testCfg.qtype;
+}
+
+let curQMode = 'kana2romaji';
+
+function showTestQ() {
+  if (testIdx >= testQ.length) { showResult(); return; }
+  const q = testQ[testIdx];
+  curQMode = getQMode();
+
+  document.getElementById('test-counter').textContent = `Soal ${testIdx+1} / ${testQ.length}`;
+  document.getElementById('test-score-live').textContent = `Benar: ${testCorrect}`;
+  document.getElementById('progress-fill').style.width = (testIdx/testQ.length*100) + '%';
+  document.getElementById('test-feedback').textContent = '';
+  document.getElementById('test-feedback').className = 'test-feedback';
+
+  const display = document.getElementById('test-q-display');
+  const label = document.getElementById('test-q-label');
+
+  if (curQMode === 'kana2romaji') {
+    label.textContent = 'Apa romaji dari karakter ini?';
+    display.className = 'test-q-char';
+    display.textContent = q.k;
+  } else {
+    label.textContent = 'Kana mana yang sesuai dengan romaji ini?';
+    display.className = 'test-q-romaji';
+    display.textContent = q.r;
+  }
+
+  if (testCfg.anstype === 'multiple') {
+    document.getElementById('test-options').style.display = 'grid';
+    document.getElementById('test-type-wrap').style.display = 'none';
+    renderOptions(q);
+  } else {
+    document.getElementById('test-options').style.display = 'none';
+    document.getElementById('test-type-wrap').style.display = 'flex';
+    const inp = document.getElementById('test-type-inp');
+    inp.value = '';
+    inp.className = '';
+    inp.disabled = false;
+    inp.focus();
+  }
+}
+
+function renderOptions(q) {
+  const pool = buildTestPool();
+  const wrong = pool.filter(x => x.r !== q.r).sort(()=>Math.random()-0.5).slice(0,3);
+  const choices = [...wrong, q].sort(()=>Math.random()-0.5);
+  const wrap = document.getElementById('test-options');
+  wrap.innerHTML = '';
+  choices.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'test-opt-btn';
+    if (curQMode === 'kana2romaji') {
+      btn.innerHTML = c.r;
+    } else {
+      btn.innerHTML = `${c.k}<small>${c.r}</small>`;
+    }
+    btn.dataset.romaji = c.r;
+    btn.onclick = () => checkChoice(btn, q);
+    wrap.appendChild(btn);
+  });
+}
+
+function checkChoice(btn, q) {
+  const btns = document.querySelectorAll('.test-opt-btn');
+  btns.forEach(b => { b.disabled = true; if (b.dataset.romaji === q.r) b.classList.add('correct'); });
+  const correct = btn.dataset.romaji === q.r;
+  if (correct) { testCorrect++; document.getElementById('test-feedback').textContent = '✓ Benar!'; document.getElementById('test-feedback').className = 'test-feedback ok'; }
+  else { btn.classList.add('wrong'); testMissed.push(q); document.getElementById('test-feedback').textContent = `✗ Salah. Jawaban: ${q.r}`; document.getElementById('test-feedback').className = 'test-feedback err'; }
+  setTimeout(() => { testIdx++; showTestQ(); }, 1100);
+}
+
+function checkTyped() {
+  const inp = document.getElementById('test-type-inp');
+  const val = inp.value.trim().toLowerCase();
+  const q = testQ[testIdx];
+  if (!val) return;
+  inp.disabled = true;
+  const correct = val === q.r;
+  if (correct) {
+    testCorrect++;
+    inp.className = 'correct';
+    document.getElementById('test-feedback').textContent = '✓ Benar!';
+    document.getElementById('test-feedback').className = 'test-feedback ok';
+  } else {
+    inp.className = 'wrong';
+    testMissed.push(q);
+    document.getElementById('test-feedback').textContent = `✗ Salah. Jawaban: ${q.r}`;
+    document.getElementById('test-feedback').className = 'test-feedback err';
+  }
+  setTimeout(() => { testIdx++; showTestQ(); }, 1000);
+}
+
+document.addEventListener('keydown', e => {
+  const ta = document.getElementById('test-active');
+  if (!ta.classList.contains('visible')) return;
+  if (testCfg.anstype === 'type' && e.key === 'Enter') checkTyped();
+});
+
+function showResult() {
+  document.getElementById('test-active').classList.remove('visible');
+  document.getElementById('test-result').classList.add('visible');
+  document.getElementById('progress-fill').style.width = '100%';
+
+  const pct = Math.round(testCorrect / testQ.length * 100);
+  document.getElementById('result-correct').textContent = testCorrect;
+  document.getElementById('result-total').textContent = testQ.length;
+  document.getElementById('result-emoji').textContent = pct >= 80 ? '合格' : pct >= 50 ? '頑張れ' : '練習';
+  document.getElementById('result-title').textContent = pct >= 80 ? 'Luar Biasa!' : pct >= 50 ? 'Terus Berlatih!' : 'Perlu Lebih Banyak Latihan';
+  document.getElementById('result-meta').textContent = `Akurasi ${pct}% · ${testQ.length} soal`;
+
+  const ml = document.getElementById('missed-list');
+  ml.innerHTML = '';
+  if (testMissed.length === 0) {
+    ml.innerHTML = '<span style="font-size:0.75rem;color:var(--sage)">Sempurna! Tidak ada yang salah.</span>';
+  } else {
+    testMissed.forEach(m => {
+      const el = document.createElement('div');
+      el.className = 'missed-item';
+      el.innerHTML = `${m.k}<small>${m.r}</small>`;
+      ml.appendChild(el);
+    });
+  }
+}
+
+function retryTest() {
+  document.getElementById('test-result').classList.remove('visible');
+  startTest();
+}
+
+function goSetup() {
+  document.getElementById('test-result').classList.remove('visible');
+  document.getElementById('test-active').classList.remove('visible');
+  document.getElementById('test-setup').style.display = '';
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+buildDeck();
+</script>
+</body>
+</html>
